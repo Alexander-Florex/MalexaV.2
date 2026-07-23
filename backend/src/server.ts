@@ -3,6 +3,7 @@ import http from 'http';
 import path from 'path';
 import fs from 'fs';
 import cors from 'cors';
+import compression from 'compression';
 import dotenv from 'dotenv';
 import { sequelize } from './config/db';
 import './models'; // registra las asociaciones
@@ -22,6 +23,7 @@ if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
 }
 
 const app = express();
+app.use(compression()); // comprime todas las respuestas (JS, CSS, JSON) antes de enviarlas
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173', credentials: true }));
 app.use(express.json());
 
@@ -35,9 +37,21 @@ app.use(errorHandler);
 // en hosting compartido/managed, donde solo hace falta un Web App de Node.js.
 const publicDir = path.join(__dirname, '..', 'public');
 if (fs.existsSync(publicDir)) {
-  app.use(express.static(publicDir));
+  app.use(express.static(publicDir, {
+    // Los archivos dentro de /assets tienen hash en el nombre (lo pone Vite),
+    // asi que cambian de nombre en cada build: se pueden cachear "para siempre".
+    // index.html NUNCA se cachea porque apunta a esos nombres con hash.
+    maxAge: '1y',
+    immutable: true,
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('index.html')) {
+        res.setHeader('Cache-Control', 'no-cache');
+      }
+    },
+  }));
   // Catch-all para las rutas de React Router (que no empiecen con /api)
   app.get(/^\/(?!api).*/, (_req, res) => {
+    res.set('Cache-Control', 'no-cache');
     res.sendFile(path.join(publicDir, 'index.html'));
   });
 }
