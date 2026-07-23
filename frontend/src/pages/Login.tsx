@@ -55,7 +55,7 @@ export function Login() {
                 <motion.h1 className="login-brand-name"
                   initial={{ opacity: 0, x: -14 }} animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1 }}>
-                  Bienvenidos aPercha
+                  Bienvenidos a Percha
                 </motion.h1>
                 <motion.p className="login-brand-tagline"
                   initial={{ opacity: 0, x: -14 }} animate={{ opacity: 1, x: 0 }}
