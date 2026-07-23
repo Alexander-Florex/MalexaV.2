@@ -1501,6 +1501,9 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([class]
 @media (prefers-reduced-motion: reduce) {
   .login-shell-halo { animation: none; }
 }
+@media (max-width: 700px) {
+  .login-shell-halo { filter: blur(24px); animation: none; opacity: .28; }
+}
 
 /* Panel izquierdo: branding */
 .login-brand-panel {
@@ -2159,6 +2162,28 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([class]
 .lf-eye-btn:hover { color: var(--rose-darker); }
 
 /* Reducir movimiento si el usuario lo prefiere */
+/* ---- Fondo animado: versión liviana para mobile ----
+   El blur pesado + mix-blend-mode en 6 elementos grandes fuerza al
+   navegador a recomponer capas costosas constantemente, y en celulares
+   de gama media/baja eso se siente como lentitud general al navegar
+   (no solo al cargar la página). Acá lo aligeramos bastante. */
+@media (max-width: 768px) {
+  .anim-orb {
+    filter: blur(28px);
+    mix-blend-mode: normal;
+    opacity: .55;
+  }
+  /* Solo quedan 3 orbes visibles en vez de 6 */
+  .orb-3, .orb-5, .orb-6 { display: none; }
+  .anim-mesh { animation-duration: 40s; }
+  /* Las figuras decorativas (círculos, anillos, puntitos) no aportan
+     nada visualmente en pantallas chicas y sí cuestan recomposición */
+  .anim-shape { display: none; }
+}
+@media (pointer: coarse) and (max-width: 768px) {
+  .anim-orb { will-change: auto; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .anim-orb, .anim-shape, .anim-mesh { animation: none !important; }
 }
