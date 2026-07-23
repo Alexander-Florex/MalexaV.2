@@ -1,5 +1,7 @@
 import express from 'express';
 import http from 'http';
+import path from 'path';
+import fs from 'fs';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { sequelize } from './config/db';
@@ -18,6 +20,18 @@ app.get('/api/health', (_req, res) => res.json({ ok: true, service: 'percha-back
 app.use('/api', routes);
 
 app.use(errorHandler);
+
+// ── Sirve el frontend (React) compilado, si existe backend/public ──
+// Esto permite desplegar UN solo proceso Node (API + Socket.IO + frontend)
+// en hosting compartido/managed, donde solo hace falta un Web App de Node.js.
+const publicDir = path.join(__dirname, '..', 'public');
+if (fs.existsSync(publicDir)) {
+  app.use(express.static(publicDir));
+  // Catch-all para las rutas de React Router (que no empiecen con /api)
+  app.get(/^\/(?!api).*/, (_req, res) => {
+    res.sendFile(path.join(publicDir, 'index.html'));
+  });
+}
 
 const httpServer = http.createServer(app);
 initSocket(httpServer);
