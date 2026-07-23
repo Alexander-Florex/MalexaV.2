@@ -1,6 +1,6 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from '../config/db';
-export type PaymentMethod = 'efectivo'|'debito'|'credito'|'transferencia'|'mercadopago'|'otro';
+export type PaymentMethod = 'efectivo'|'mercadopago'|'debito';
 export type SaleChannel = 'local'|'live';
 
 interface SaleAttrs {
@@ -23,7 +23,7 @@ Sale.init({
   user_id:         { type: DataTypes.INTEGER, allowNull: false },
   cash_session_id: { type: DataTypes.INTEGER, allowNull: true },
   channel:         { type: DataTypes.ENUM('local','live'), allowNull: false, defaultValue: 'local' },
-  payment_method:  { type: DataTypes.ENUM('efectivo','debito','credito','transferencia','mercadopago','otro'), allowNull: false, defaultValue: 'efectivo' },
+  payment_method:  { type: DataTypes.ENUM('efectivo','mercadopago','debito'), allowNull: false, defaultValue: 'efectivo' },
   buyer_name:      { type: DataTypes.STRING(120), allowNull: true },
   buyer_contact:   { type: DataTypes.STRING(120), allowNull: true },
   total:           { type: DataTypes.DECIMAL(12,2), allowNull: false, defaultValue: 0 },

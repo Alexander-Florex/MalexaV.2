@@ -3,6 +3,7 @@ import { Op, fn, col, literal, QueryTypes } from 'sequelize';
 import { AuthedRequest } from '../middleware/auth';
 import { Sale, Expense, Product, User, StockMovement } from '../models';
 import { sequelize } from '../config/db';
+import { escapeHtml } from '../utils/html';
 
 function startOfToday() { const d=new Date(); d.setHours(0,0,0,0); return d; }
 function startOfMonth()  { const d=new Date(); d.setDate(1); d.setHours(0,0,0,0); return d; }
@@ -43,15 +44,15 @@ export async function getSummary(req: AuthedRequest, res: Response, next: NextFu
 
     const activity = [
       ...recentSales.map((s:any) => ({
-        message: `<strong>${s.User?.name ?? 'Empleado'}</strong> registró venta de <strong>$${Number(s.total).toLocaleString('es-AR')}</strong>`,
+        message: `<strong>${escapeHtml(s.User?.name ?? 'Empleado')}</strong> registró venta de <strong>$${Number(s.total).toLocaleString('es-AR')}</strong>`,
         at: s.created_at,
       })),
       ...recentExpenses.map((e) => ({
-        message: `Gasto: <strong>${e.category}</strong> $${Number(e.amount).toLocaleString('es-AR')}`,
+        message: `Gasto: <strong>${escapeHtml(e.category)}</strong> $${Number(e.amount).toLocaleString('es-AR')}`,
         at: e.created_at,
       })),
       ...recentStock.map((m:any) => ({
-        message: `Stock de <strong>${(m as any).Product?.name ?? 'Producto'}</strong>: ${m.quantity > 0 ? '+' : ''}${m.quantity}`,
+        message: `Stock de <strong>${escapeHtml((m as any).Product?.name ?? 'Producto')}</strong>: ${m.quantity > 0 ? '+' : ''}${m.quantity}`,
         at: m.created_at,
       })),
     ].sort((a,b) => new Date(b.at).getTime()-new Date(a.at).getTime()).slice(0,8);

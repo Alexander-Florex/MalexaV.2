@@ -45,6 +45,7 @@ export function App() {
               <Route path="reportes" element={<Reportes />} />
             </Route>
             <Route path="/" element={<RootRedirect />} />
+            <Route path="*" element={<RootRedirect />} />
           </Routes>
         </ToastProvider>
       </AuthProvider>

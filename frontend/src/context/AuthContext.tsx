@@ -22,9 +22,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedToken = localStorage.getItem('percha_token');
     const storedUser = localStorage.getItem('percha_user');
     if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-      connectSocket(storedToken);
+      try {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+        connectSocket(storedToken);
+      } catch {
+        // Datos corruptos en localStorage: limpiamos y forzamos nuevo login
+        localStorage.removeItem('percha_token');
+        localStorage.removeItem('percha_user');
+      }
     }
     setLoading(false);
   }, []);

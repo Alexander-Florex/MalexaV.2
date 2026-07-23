@@ -7,21 +7,25 @@ import { emitToTenant } from '../sockets/socket';
 
 async function computeRunningTotals(tenantId: number, session: CashSession) {
   const since = session.opened_at;
-  // Ventas registradas desde que se abrió la caja
-  const [cashSales, otherSales, cashExpenses] = await Promise.all([
+  const [totalVentas, ventasEfectivo, totalGastos] = await Promise.all([
+    // Total de ventas por todos los medios de pago — es lo que se muestra como "Total ventas"
     Sale.sum('total', {
       where: { tenant_id: tenantId, created_at: { [Op.gte]: since } },
     }),
-    // No hay payment_method en este esquema, así que sólo calculamos totales generales
-    Expense.sum('amount', {
-      where: { tenant_id: tenantId, expense_date: { [Op.gte]: since } },
+    // Solo ventas en efectivo — es lo único que realmente entra a la caja física
+    Sale.sum('total', {
+      where: { tenant_id: tenantId, created_at: { [Op.gte]: since }, payment_method: 'efectivo' },
     }),
-    Promise.resolve(0),
+    // Solo gastos pagados en efectivo salen de la caja física
+    Expense.sum('amount', {
+      where: { tenant_id: tenantId, expense_date: { [Op.gte]: since }, payment_method: 'efectivo' },
+    }),
   ]);
-  const totalVentas   = Number(cashSales)    || 0;
-  const totalGastos   = Number(otherSales)   || 0;
-  const expectedCash  = Number(session.opening_amount) + totalVentas - totalGastos;
-  return { cashSales: totalVentas, otherSales: 0, cashExpenses: totalGastos, expectedCash };
+  const cashSales      = Number(totalVentas)    || 0; // total ventas (todos los medios)
+  const cashOnlySales   = Number(ventasEfectivo) || 0; // solo efectivo, para el cálculo de caja física
+  const cashExpenses   = Number(totalGastos)    || 0;
+  const expectedCash   = Number(session.opening_amount) + cashOnlySales - cashExpenses;
+  return { cashSales, otherSales: cashOnlySales, cashExpenses, expectedCash };
 }
 
 export async function getCurrent(req: AuthedRequest, res: Response, next: NextFunction) {

@@ -4,6 +4,7 @@ import { AuthedRequest } from '../middleware/auth';
 import { sequelize } from '../config/db';
 import { Product, ProductPriceTier, Category, StockMovement } from '../models';
 import { emitToTenant } from '../sockets/socket';
+import { escapeHtml } from '../utils/html';
 
 export async function listProducts(req: AuthedRequest, res: Response, next: NextFunction) {
   try {
@@ -48,7 +49,7 @@ export async function createProduct(req: AuthedRequest, res: Response, next: Nex
     await t.commit();
 
     emitToTenant(tenantId, 'activity', {
-      message: `Se agrego el producto <strong>${product.name}</strong>`,
+      message: `Se agrego el producto <strong>${escapeHtml(product.name)}</strong>`,
       at: new Date().toISOString(),
     });
 
@@ -105,7 +106,7 @@ export async function deleteProduct(req: AuthedRequest, res: Response, next: Nex
     if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
     await product.update({ active: false });
     emitToTenant(tenantId, 'activity', {
-      message: `Se dio de baja el producto <strong>${product.name}</strong>`,
+      message: `Se dio de baja el producto <strong>${escapeHtml(product.name)}</strong>`,
       at: new Date().toISOString(),
     });
     res.json({ ok: true });
@@ -140,29 +141,35 @@ const adjustSchema = z.object({
 });
 
 export async function adjustStock(req: AuthedRequest, res: Response, next: NextFunction) {
+  const t = await sequelize.transaction();
   try {
     const tenantId = req.auth!.tenantId;
     const id = Number(req.params.id);
     const data = adjustSchema.parse(req.body);
 
-    const product = await Product.findOne({ where: { id, tenant_id: tenantId } });
-    if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
+    const product = await Product.findOne({
+      where: { id, tenant_id: tenantId },
+      transaction: t, lock: t.LOCK.UPDATE,
+    });
+    if (!product) { await t.rollback(); return res.status(404).json({ error: 'Producto no encontrado' }); }
 
     const newStock = product.stock + data.quantity;
-    if (newStock < 0) return res.status(400).json({ error: 'El stock no puede quedar negativo' });
+    if (newStock < 0) { await t.rollback(); return res.status(400).json({ error: 'El stock no puede quedar negativo' }); }
 
-    await product.update({ stock: newStock });
+    await product.update({ stock: newStock }, { transaction: t });
     await StockMovement.create({
       tenant_id: tenantId, product_id: id,
       user_id: req.auth!.userId, type: data.type,
       quantity: data.quantity, reason: data.reason ?? null,
-    });
+    }, { transaction: t });
+
+    await t.commit();
 
     emitToTenant(tenantId, 'stock:updated', { productId: id, stock: newStock });
     emitToTenant(tenantId, 'activity', {
-      message: `Stock de <strong>${product.name}</strong>: ${data.quantity > 0 ? '+' : ''}${data.quantity}`,
+      message: `Stock de <strong>${escapeHtml(product.name)}</strong>: ${data.quantity > 0 ? '+' : ''}${data.quantity}`,
       at: new Date().toISOString(),
     });
     res.json(product);
-  } catch (err) { next(err); }
+  } catch (err) { await t.rollback(); next(err); }
 }

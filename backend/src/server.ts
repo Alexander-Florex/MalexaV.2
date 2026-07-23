@@ -12,6 +12,15 @@ import { initSocket } from './sockets/socket';
 
 dotenv.config();
 
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  console.error(
+    '❌ Falta la variable de entorno JWT_SECRET en produccion. ' +
+    'Sin esto, los tokens de sesion se firman con un secreto de desarrollo conocido ' +
+    'y cualquiera podria falsificar una sesion. Definila en el panel de Hostinger (Variables de entorno) y volve a desplegar.'
+  );
+  process.exit(1);
+}
+
 const app = express();
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173', credentials: true }));
 app.use(express.json());

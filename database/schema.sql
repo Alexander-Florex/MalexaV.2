@@ -2,12 +2,15 @@
 -- Percha — Esquema v3
 -- Novedades: canal de venta (local/live), precios por tier
 -- (minorista/mayorista con hasta 3 cantidades), stock plano.
--- Importar en MySQL Workbench: File > Run SQL Script
+--
+-- IMPORTANTE (hosting compartido / Hostinger):
+-- La base de datos ya la creaste vos desde hPanel (Bases de datos),
+-- así que este script NO crea ni borra la base — se importa
+-- directamente "dentro" de la base que elegiste en phpMyAdmin.
+-- Si lo corrés en local con MySQL Workbench, creá la base a mano
+-- una vez ("CREATE DATABASE percha_db;") y seleccionala antes de
+-- correr este script.
 -- ============================================================
-
-DROP DATABASE IF EXISTS percha_db;
-CREATE DATABASE percha_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE percha_db;
 
 CREATE TABLE tenants (
   id         INT AUTO_INCREMENT PRIMARY KEY,
@@ -91,7 +94,7 @@ CREATE TABLE sales (
   user_id         INT NOT NULL,
   cash_session_id INT NULL,
   channel         ENUM('local','live') NOT NULL DEFAULT 'local',
-  payment_method  ENUM('efectivo','debito','credito','transferencia','mercadopago','otro') NOT NULL DEFAULT 'efectivo',
+  payment_method  ENUM('efectivo','mercadopago','debito') NOT NULL DEFAULT 'efectivo',
   buyer_name      VARCHAR(120) NULL,   -- para ventas de live (nombre del cliente)
   buyer_contact   VARCHAR(120) NULL,   -- para ventas de live (Instagram/WhatsApp)
   total           DECIMAL(12,2) NOT NULL DEFAULT 0,
@@ -125,7 +128,7 @@ CREATE TABLE expenses (
   cash_session_id INT NULL,
   category        VARCHAR(60) NOT NULL,
   description     VARCHAR(255),
-  payment_method  ENUM('efectivo','debito','credito','transferencia','mercadopago','otro') NOT NULL DEFAULT 'efectivo',
+  payment_method  ENUM('efectivo','mercadopago','debito') NOT NULL DEFAULT 'efectivo',
   amount          DECIMAL(12,2) NOT NULL,
   expense_date    DATE NOT NULL,
   created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

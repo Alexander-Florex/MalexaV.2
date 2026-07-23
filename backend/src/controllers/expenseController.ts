@@ -3,12 +3,14 @@ import { z } from 'zod';
 import { AuthedRequest } from '../middleware/auth';
 import { Expense } from '../models';
 import { emitToTenant } from '../sockets/socket';
+import { escapeHtml } from '../utils/html';
 
 const createSchema = z.object({
   category: z.string().min(2),
   description: z.string().optional(),
   amount: z.number().positive(),
   expenseDate: z.string(), // 'YYYY-MM-DD'
+  paymentMethod: z.enum(['efectivo','mercadopago','debito']).default('efectivo'),
 });
 
 export async function createExpense(req: AuthedRequest, res: Response, next: NextFunction) {
@@ -24,10 +26,11 @@ export async function createExpense(req: AuthedRequest, res: Response, next: Nex
       description: data.description ?? null,
       amount: data.amount,
       expense_date: data.expenseDate,
+      payment_method: data.paymentMethod,
     });
 
     emitToTenant(tenantId, 'activity', {
-      message: `Nuevo gasto cargado: <strong>${data.category}</strong> $${data.amount.toLocaleString('es-AR')}`,
+      message: `Nuevo gasto cargado: <strong>${escapeHtml(data.category)}</strong> $${data.amount.toLocaleString('es-AR')}`,
       at: new Date().toISOString(),
     });
 

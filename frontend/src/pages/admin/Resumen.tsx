@@ -30,14 +30,14 @@ export function Resumen() {
       {loadingSum ? <SkeletonKpiGrid count={4} /> : (
         <div className="kpi-grid">
           {[
-            { label: 'Ventas hoy', value: summary?.ventasHoy ?? 0, display: money(summary?.ventasHoy ?? 0), icon: '💰', cls: 'kpi-sales' },
-            { label: 'Gastos del mes', value: summary?.gastosMes ?? 0, display: money(summary?.gastosMes ?? 0), icon: '💸', cls: 'kpi-expenses' },
-            { label: 'Stock bajo', value: summary?.stockBajo ?? 0, display: String(summary?.stockBajo ?? 0), icon: '⚠️', cls: 'kpi-low' },
-            { label: 'Productos activos', value: summary?.productosActivos ?? 0, display: String(summary?.productosActivos ?? 0), icon: '📦', cls: 'kpi-products' },
+            { label: 'Ventas hoy', value: summary?.ventasHoy ?? 0, formatter: money, icon: '💰', cls: 'kpi-sales' },
+            { label: 'Gastos del mes', value: summary?.gastosMes ?? 0, formatter: money, icon: '💸', cls: 'kpi-expenses' },
+            { label: 'Stock bajo', value: summary?.stockBajo ?? 0, formatter: (n: number) => String(Math.round(n)), icon: '⚠️', cls: 'kpi-low' },
+            { label: 'Productos activos', value: summary?.productosActivos ?? 0, formatter: (n: number) => String(Math.round(n)), icon: '📦', cls: 'kpi-products' },
           ].map((k, i) => (
             <motion.div key={k.label} className={`card kpi-card ${k.cls}`} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}>
               <div className="kpi-icon">{k.icon}</div>
-              <div className="kpi-value"><CountUp value={k.value} /></div>
+              <div className="kpi-value"><CountUp value={k.value} formatter={k.formatter} /></div>
               <div className="kpi-label">{k.label}</div>
             </motion.div>
           ))}

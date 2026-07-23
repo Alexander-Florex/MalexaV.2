@@ -1,11 +1,10 @@
 export type UserRole    = 'admin' | 'employee';
-export type PaymentMethod = 'efectivo'|'debito'|'credito'|'transferencia'|'mercadopago'|'otro';
+export type PaymentMethod = 'efectivo'|'mercadopago'|'debito';
 export type SaleChannel = 'local' | 'live';
 export type PriceType   = 'minorista' | 'mayorista';
 
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
-  efectivo:'Efectivo', debito:'Débito', credito:'Crédito',
-  transferencia:'Transferencia', mercadopago:'Mercado Pago', otro:'Otro',
+  efectivo:'Efectivo', mercadopago:'Mercado Pago', debito:'Débito',
 };
 export const CHANNEL_LABELS: Record<SaleChannel, string> = {
   local: '🏪 Local', live: '📱 Live',
