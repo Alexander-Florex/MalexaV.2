@@ -55,12 +55,12 @@ export function Login() {
                 <motion.h1 className="login-brand-name"
                   initial={{ opacity: 0, x: -14 }} animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1 }}>
-                  Malexa
+                  Bienvenidos aPercha
                 </motion.h1>
                 <motion.p className="login-brand-tagline"
                   initial={{ opacity: 0, x: -14 }} animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.15 }}>
-                  El sistema de gestión para tu tienda de indumentaria
+                  El sistema de gestión para tu tienda de ropa y accesorios.
                 </motion.p>
 
                 <div className="login-features">
